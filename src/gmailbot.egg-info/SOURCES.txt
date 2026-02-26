@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/gmailbot/__init__.py
+src/gmailbot/bot.py
+src/gmailbot/cli.py
+src/gmailbot.egg-info/PKG-INFO
+src/gmailbot.egg-info/SOURCES.txt
+src/gmailbot.egg-info/dependency_links.txt
+src/gmailbot.egg-info/entry_points.txt
+src/gmailbot.egg-info/requires.txt
+src/gmailbot.egg-info/top_level.txt

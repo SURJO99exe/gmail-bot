@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: gmailbot
+Version: 0.1.0
+Summary: Gmail Account Automation Framework
+Author: SURJO99exe
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: selenium>=4.10.0
+Requires-Dist: webdriver-manager>=4.0.0
+Requires-Dist: typer>=0.9.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: python-dotenv>=1.0.0
+
+# Gmail Bot 🤖
+
+A Python-based automation framework for navigating the Gmail account creation process.
+
+## Important Note
+Google has strict anti-bot measures. This tool is for **educational and research purposes only**. Automatic account creation often requires phone verification (SMS), which this basic script does not bypass automatically.
+
+## Installation
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -e .
+```
+
+## Usage
+```bash
+gbot create --count 1
+```
