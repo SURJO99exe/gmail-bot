@@ -1,6 +1,7 @@
 import time
 import random
 import string
+import pyautogui
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.edge.options import Options
@@ -14,6 +15,8 @@ class GmailBot:
         edge_options = Options()
         edge_options.add_argument("--start-maximized")
         edge_options.add_argument("--disable-blink-features=AutomationControlled")
+        edge_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        edge_options.add_experimental_option('useAutomationExtension', False)
         
         self.driver = webdriver.Edge(options=edge_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -21,10 +24,16 @@ class GmailBot:
     def _generate_random_string(self, length=8):
         return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
+    def type_human(self, text):
+        """Simulate human typing using pyautogui."""
+        for char in text:
+            pyautogui.write(char)
+            time.sleep(random.uniform(0.1, 0.3))
+
     def start_signup(self):
-        """Navigate to the Google account creation page and fill initial form."""
+        """Navigate to the Google account creation page and fill form using direct keyboard simulation."""
         self.driver.get("https://accounts.google.com/signup")
-        wait = WebDriverWait(self.driver, 30)
+        time.sleep(5) # Wait for page load
         
         # Random data
         first_name = "John"
@@ -32,95 +41,58 @@ class GmailBot:
         username = f"jd{self._generate_random_string(10)}"
         password = f"Pass{self._generate_random_string(12)}!"
 
-        def fill_field_js(element, value):
-            try:
-                self.driver.execute_script("arguments[0].focus();", element)
-                self.driver.execute_script("arguments[0].value = arguments[1];", element, value)
-                self.driver.execute_script("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", element)
-                self.driver.execute_script("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", element)
-                self.driver.execute_script("arguments[0].blur();", element)
-            except Exception as e:
-                print(f"JS Fill failed: {e}")
-
         try:
-            # --- Step 1: Name ---
-            # Try finding by different locators for resilience
-            first_name_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='firstName']")))
-            fill_field_js(first_name_field, first_name)
-            
-            last_name_field = self.driver.find_element(By.CSS_SELECTOR, "input[name='lastName']")
-            fill_field_js(last_name_field, last_name)
-            
-            # Find Next button by text content inside button
-            next_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button//span[text()='Next']/..|//button[contains(., 'Next')]")))
-            self.driver.execute_script("arguments[0].click();", next_button)
+            # Step 1: Name
+            # Just start typing, the first name field is usually auto-focused
+            self.type_human(first_name)
+            time.sleep(0.5)
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            self.type_human(last_name)
+            time.sleep(0.5)
+            pyautogui.press('enter')
             time.sleep(5)
             
-            # --- Step 2: Birthday & Gender ---
-            day_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='day']")))
-            fill_field_js(day_field, "15")
-            
-            # Google often uses custom selects. We'll try to find the hidden select or use send_keys if visible.
-            try:
-                month_select = self.driver.find_element(By.ID, "month")
-                month_select.send_keys("January")
-            except:
-                pass
-            
-            year_field = self.driver.find_element(By.CSS_SELECTOR, "input[name='year']")
-            fill_field_js(year_field, "1995")
-            
-            try:
-                gender_select = self.driver.find_element(By.ID, "gender")
-                gender_select.send_keys("Male")
-            except:
-                pass
-            
-            next_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button//span[text()='Next']/..|//button[contains(., 'Next')]")))
-            self.driver.execute_script("arguments[0].click();", next_button)
+            # Step 2: Birthday & Gender
+            self.type_human("15") # Day
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            self.type_human("January") # Month (type the name, it usually works for dropdowns)
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            self.type_human("1995") # Year
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            self.type_human("Male") # Gender
+            time.sleep(0.5)
+            pyautogui.press('enter')
             time.sleep(5)
             
-            # --- Step 3: Choose Username ---
-            # Wait for either Username field or suggestions
-            username_container = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='Username']|//div[contains(text(), 'Create your own')]|//div[@id='selectionc1']")))
-            
-            create_own = self.driver.find_elements(By.XPATH, "//div[contains(text(), 'Create your own')]")
-            if create_own:
-                self.driver.execute_script("arguments[0].click();", create_own[0])
-                time.sleep(2)
-
-            username_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='Username']")))
-            fill_field_js(username_field, username)
-            
-            next_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button//span[text()='Next']/..|//button[contains(., 'Next')]")))
-            self.driver.execute_script("arguments[0].click();", next_button)
+            # Step 3: Username
+            self.type_human(username)
+            time.sleep(0.5)
+            pyautogui.press('enter')
             time.sleep(5)
             
-            # --- Step 4: Password ---
-            pass_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='Passwd']")))
-            fill_field_js(pass_field, password)
-            
-            confirm_field = self.driver.find_element(By.CSS_SELECTOR, "input[name='ConfirmPasswd']")
-            fill_field_js(confirm_field, password)
-            
-            next_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button//span[text()='Next']/..|//button[contains(., 'Next')]")))
-            self.driver.execute_script("arguments[0].click();", next_button)
+            # Step 4: Password
+            self.type_human(password)
+            time.sleep(0.5)
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            self.type_human(password)
+            time.sleep(0.5)
+            pyautogui.press('enter')
 
             print(f"Generated Credentials: {username}@gmail.com / {password}")
             print("Action required: Phone verification might appear now.")
             time.sleep(10)
             
         except Exception as e:
-            print(f"Automation failed: {str(e)[:200]}")
-            # Take a screenshot for debugging if it fails
+            print(f"Human-like automation failed: {e}")
             try:
                 self.driver.save_screenshot("error_screenshot.png")
-                print("Screenshot saved as error_screenshot.png")
             except:
                 pass
-            
-        except Exception as e:
-            print(f"Automation step failed: {e}")
 
     def quit(self):
         if self.driver:
